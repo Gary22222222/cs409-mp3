@@ -51,8 +51,12 @@ async function start() {
     return app.listen(port, () => console.log('Server running on port ' + port));
 }
 if (require.main === module) {
-    start().catch(() => {
-        console.error('Startup failed. Check MONGODB_URI and database access.');
+    start().catch(err => {
+        const category = err.code === 18 || err.code === 8000 ? 'Database authentication failed.'
+            : err.name === 'MongoServerSelectionError' ? 'Database is unreachable. Check Atlas network access.'
+            : err.name === 'MongoParseError' ? 'Invalid database connection string.'
+            : 'Check MONGODB_URI and database access.';
+        console.error('Startup failed. ' + category, { name: err.name, code: err.code });
         process.exitCode = 1;
     });
 }
